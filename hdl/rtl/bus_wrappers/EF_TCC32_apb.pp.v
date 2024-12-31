@@ -33,13 +33,16 @@ module EF_TCC32_apb (
 	input	wire [31:0]	PWDATA,
 	output	wire [31:0]	PRDATA,
 	output	wire 		PREADY,
-	output	wire 		irq
+	output	wire 		irq,
+
+    output wire gpio_pwm	// PWM gpio output
 );
 	localparam[15:0] TIMER_REG_ADDR 		= 	16'h0000;
 	localparam[15:0] PERIOD_REG_ADDR 		= 	16'h0004;
 	localparam[15:0] COUNTER_REG_ADDR 		= 	16'h0008;
 	localparam[15:0] COUNTER_MATCH_REG_ADDR = 	16'h000c;
 	localparam[15:0] CONTROL_REG_ADDR 		= 	16'h0010;
+	localparam[15:0] PWM_COMP_VAL_ADDR		= 	16'h0014;	// PWM compare register
 	localparam[15:0] ICR_REG_ADDR 			= 	16'h0f00;
 	localparam[15:0] RIS_REG_ADDR 			= 	16'h0f04;
 	localparam[15:0] IM_REG_ADDR 			= 	16'h0f08;
@@ -63,6 +66,7 @@ module EF_TCC32_apb (
 
 	wire		en			= CONTROL_REG[0:0];
 	wire		tmr_en		= CONTROL_REG[1:1];
+	wire 		pwm_en  	= CONTROL_REG[2:2];		// PWM_enable
 	wire		cp_en		= CONTROL_REG[3:3];
 	wire[3:0]	clk_src		= CONTROL_REG[11:8];
 	wire		up			= CONTROL_REG[16:16];
@@ -82,11 +86,12 @@ module EF_TCC32_apb (
 	wire		_clk_		= PCLK;
 	wire		_rst_		= ~PRESETn;
 
-	// Объявление модуля таймера для интерфейса APB
 	EF_TCC32 inst_to_wrap (
 		.clk(_clk_),
 		.rst_n(~_rst_),
 		.ctr_in(ctr_in),
+		.pwm_out_pin(gpio_pwm),			// PWM signal out for GPIO
+		.pwm_cmp_in(PWM_COMP_VAL_REG),	// PWM input compare value
 		.period(period),
 		.ctr_match(ctr_match),
 		.tmr(tmr),
@@ -95,6 +100,7 @@ module EF_TCC32_apb (
 		.to_flag(to_flag),
 		.match_flag(match_flag),
 		.tmr_en(tmr_en),
+		.pwm_en(pwm_en),				// PWM_enable 
 		.one_shot(one_shot),
 		.up(up),
 		.cp_en(cp_en),
@@ -118,14 +124,21 @@ module EF_TCC32_apb (
 		if(~PRESETn) COUNTER_MATCH_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==COUNTER_MATCH_REG_ADDR)) 
 			COUNTER_MATCH_REG <= PWDATA[32-1:0];
-	
+
 	// Control Register 
 	// [offset: 0x10, RW]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) CONTROL_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==CONTROL_REG_ADDR)) 
 			CONTROL_REG <= PWDATA[32-1:0];
-	
+
+	// PWM compare value register
+	// [offset: 0x14, RW]
+		always @(posedge PCLK or negedge PRESETn) 
+			if(~PRESETn) PWM_COMP_VAL_REG <= 0; 
+			else if(apb_we & (PADDR[15:0]==PWM_COMP_VAL_ADDR)) 
+				PWM_COMP_VAL_REG <= PWDATA[32-1:0];
+
 	// Interrupt Mask Register
 	// [offset: 0xF08, RW]
 	always @(posedge PCLK or negedge PRESETn) 
@@ -140,7 +153,6 @@ module EF_TCC32_apb (
 		else if(apb_we & (PADDR[15:0]==ICR_REG_ADDR)) 
 			ICR_REG <= PWDATA[3-1:0]; 
 				else ICR_REG <= 3'd0;
-
 
 	// Masked Interrupts Status Register  
 	// [offset: 0xF04, RO]
@@ -170,9 +182,8 @@ module EF_TCC32_apb (
 			(PADDR[15:0] == TIMER_REG_ADDR) ? TIMER_REG :
 			(PADDR[15:0] == COUNTER_REG_ADDR) ? COUNTER_REG :
 			(PADDR[15:0] == MIS_REG_ADDR) ? MIS_REG :
+            (PADDR[15:0] == PWM_COMP_VAL_ADDR) ? PWM_COMP_VAL_REG :
 			32'hDEADBEEF;
-
-
 	assign PREADY = 1'b1;
 
 endmodule

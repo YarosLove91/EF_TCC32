@@ -3,6 +3,7 @@ localparam[15:0] PERIOD_REG_ADDR        = 16'h0004;
 localparam[15:0] COUNTER_REG_ADDR       = 16'h0008;
 localparam[15:0] COUNTER_MATCH_REG_ADDR = 16'h000c;
 localparam[15:0] CONTROL_REG_ADDR       = 16'h0010;
+localparam[15:0] PWM_COMP_VAL_ADDR		= 16'h0014;	
 localparam[15:0] ICR_REG_ADDR           = 16'h0f00;
 localparam[15:0] RIS_REG_ADDR           = 16'h0f04;
 localparam[15:0] IM_REG_ADDR            = 16'h0f08;
@@ -10,6 +11,7 @@ localparam[15:0] MIS_REG_ADDR           = 16'h0f0c;
 
 localparam  CTRL_EN                     = 1,
             CTRL_TMR_EN                 = 2,
+            CTRL_PWM_EN                 = 4,
             CTRL_CP_EN                  = 8,
             CTRL_COUNT_UP               = 32'h10000,
             CTRL_MODE_ONESHOT           = 32'h20000,

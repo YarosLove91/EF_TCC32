@@ -64,10 +64,13 @@ module EF_TCC32 (
     input   wire [31:0]     ctr_match,
     output  reg  [31:0]     tmr,
     output  reg  [31:0]     cp_count,
+    input   wire [31:0]     pwm_cmp_in,
     input   wire [ 3:0]     clk_src,
     output  wire	        to_flag,
     output  wire            match_flag,
     input	wire	        tmr_en,
+    input	wire            pwm_en,
+    output	wire            pwm_out_pin,
     input	wire	        one_shot,
     input	wire	        up,
     input   wire            cp_en,
@@ -81,6 +84,7 @@ module EF_TCC32 (
     reg			    stop;
     reg			    pwm_out;
     
+    assign pwm_out_pin = pwm_out;
     assign to_flag = up ? (tmr == period) : (tmr == 32'b0);
     
     // ctr pin syn
@@ -138,8 +142,13 @@ module EF_TCC32 (
         else if(to_flag & one_shot)
             stop <= 1'b1;
             
+    reg [31:0] pwm_cmp;                    //   PWM compare reg
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) pwm_cmp <= 1'b0;       //   Reset
+            else  pwm_cmp <= pwm_cmp_in;   //   Ckk sync   
+    end
+
     // PWM
-    /*		
     wire	pwm_toggle = (tmr == pwm_cmp);
     always @ (posedge clk or negedge rst_n)
         if(!rst_n)
@@ -149,7 +158,7 @@ module EF_TCC32 (
                     pwm_out <= 1'b1;
                 else if(to_flag) 
                     pwm_out <= 1'b0;
-    */        
+
     // Capture Events
     reg [31:0]  cp_ctr;
     //reg [31:0]  cp_count;
