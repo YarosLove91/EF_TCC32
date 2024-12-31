@@ -81,7 +81,7 @@ module EF_TCC32_apb (
 	wire[2:0]	MIS_REG		= RIS_REG & IM_REG;
 	wire		ctr_in		= ext_clk;
 	wire		apb_valid	= PSEL & PENABLE;
-	wire		apb_we		= PWRITE & apb_valid;
+	wire		apb_we		= PWRITE & apb_valid;		// PSEL & PENABLE & PWRITE
 	wire		apb_re		= ~PWRITE & apb_valid;
 	wire		_clk_		= PCLK;
 	wire		_rst_		= ~PRESETn;
