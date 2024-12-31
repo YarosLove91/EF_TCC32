@@ -82,6 +82,7 @@ module EF_TCC32_apb (
 	wire		_clk_		= PCLK;
 	wire		_rst_		= ~PRESETn;
 
+	// Объявление модуля таймера для интерфейса APB
 	EF_TCC32 inst_to_wrap (
 		.clk(_clk_),
 		.rst_n(~_rst_),
@@ -102,26 +103,38 @@ module EF_TCC32_apb (
 		.en(en)
 	);
 
+	// Декодеры адреса
+
+	// Timer Period Register 
+	// [offset: 0x04, RW]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) PERIOD_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==PERIOD_REG_ADDR))
 			PERIOD_REG <= PWDATA[32-1:0];
 	
+	// Counter Match Register 
+	// [offset: 0x0C, RW]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) COUNTER_MATCH_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==COUNTER_MATCH_REG_ADDR)) 
 			COUNTER_MATCH_REG <= PWDATA[32-1:0];
 	
+	// Control Register 
+	// [offset: 0x10, RW]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) CONTROL_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==CONTROL_REG_ADDR)) 
 			CONTROL_REG <= PWDATA[32-1:0];
 	
+	// Interrupt Mask Register
+	// [offset: 0xF08, RW]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) IM_REG <= 0; 
 		else if(apb_we & (PADDR[15:0]==IM_REG_ADDR)) 
 			IM_REG <= PWDATA[3-1:0];
 
+	// Raw Interrupts Status Register
+	// [offset: 0xF00, RO]
 	always @(posedge PCLK or negedge PRESETn) 
 		if(~PRESETn) ICR_REG <= 3'b0; 
 		else if(apb_we & (PADDR[15:0]==ICR_REG_ADDR)) 
@@ -129,6 +142,8 @@ module EF_TCC32_apb (
 				else ICR_REG <= 3'd0;
 
 
+	// Masked Interrupts Status Register  
+	// [offset: 0xF04, RO]
 	always @(posedge PCLK or negedge PRESETn)
 		if(~PRESETn) RIS_REG <= 3'd0;
 		else begin
@@ -142,6 +157,9 @@ module EF_TCC32_apb (
 
 	assign irq = |MIS_REG;
 
+	// PRDATA - Шина данных для чтения. Может иметь разрядность до 32 бит.
+	// PADDR - Шина адреса. Может иметь разрядность до 32 бит. 
+	// Поступает от ведущего устройства, ведомое читает
 	assign	PRDATA = 
 			(PADDR[15:0] == PERIOD_REG_ADDR) ? PERIOD_REG :
 			(PADDR[15:0] == COUNTER_MATCH_REG_ADDR) ? COUNTER_MATCH_REG :
