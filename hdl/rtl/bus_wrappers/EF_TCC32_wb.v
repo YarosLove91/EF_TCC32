@@ -23,9 +23,13 @@
 `timescale			1ns/1ns
 `default_nettype	none
 
-`define		WB_BLOCK(name, init)	always @(posedge clk_i or posedge rst_i) if(rst_i) name <= init;
-`define		WB_REG(name, init)		`WB_BLOCK(name, init) else if(wb_we & (adr_i==``name``_ADDR)) name <= dat_i;
-`define		WB_ICR(sz)				`WB_BLOCK(ICR_REG, sz'b0) else if(wb_we & (adr_i==ICR_REG_ADDR)) ICR_REG <= dat_i; else ICR_REG <= sz'd0;
+`define		WB_BLOCK(name, init)	always @(posedge clk_i or posedge rst_i)	\
+										if(rst_i) name <= init;
+`define		WB_REG(name, init)		`WB_BLOCK(name, init) 						\
+										else if(wb_we & (adr_i==``name``_ADDR)) name <= dat_i;
+`define		WB_ICR(sz)				`WB_BLOCK(ICR_REG, sz'b0) 					\
+										else if(wb_we & (adr_i==ICR_REG_ADDR)) ICR_REG <= dat_i;\ 
+											else ICR_REG <= sz'd0;
 
 module EF_TCC32_wb (
 	input	wire 		ext_clk,

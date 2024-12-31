@@ -19,13 +19,8 @@
 
 */
 
-
 `timescale			1ns/1ns
 `default_nettype	none
-
-
-
-
 
 module EF_TCC32_apb (
 	input	wire 		ext_clk,
@@ -40,15 +35,15 @@ module EF_TCC32_apb (
 	output	wire 		PREADY,
 	output	wire 		irq
 );
-	localparam[15:0] TIMER_REG_ADDR = 16'h0000;
-	localparam[15:0] PERIOD_REG_ADDR = 16'h0004;
-	localparam[15:0] COUNTER_REG_ADDR = 16'h0008;
-	localparam[15:0] COUNTER_MATCH_REG_ADDR = 16'h000c;
-	localparam[15:0] CONTROL_REG_ADDR = 16'h0010;
-	localparam[15:0] ICR_REG_ADDR = 16'h0f00;
-	localparam[15:0] RIS_REG_ADDR = 16'h0f04;
-	localparam[15:0] IM_REG_ADDR = 16'h0f08;
-	localparam[15:0] MIS_REG_ADDR = 16'h0f0c;
+	localparam[15:0] TIMER_REG_ADDR 		= 	16'h0000;
+	localparam[15:0] PERIOD_REG_ADDR 		= 	16'h0004;
+	localparam[15:0] COUNTER_REG_ADDR 		= 	16'h0008;
+	localparam[15:0] COUNTER_MATCH_REG_ADDR = 	16'h000c;
+	localparam[15:0] CONTROL_REG_ADDR 		= 	16'h0010;
+	localparam[15:0] ICR_REG_ADDR 			= 	16'h0f00;
+	localparam[15:0] RIS_REG_ADDR 			= 	16'h0f04;
+	localparam[15:0] IM_REG_ADDR 			= 	16'h0f08;
+	localparam[15:0] MIS_REG_ADDR 			= 	16'h0f0c;
 
 	reg	[31:0]	PERIOD_REG;
 	reg	[31:0]	COUNTER_MATCH_REG;
@@ -59,15 +54,18 @@ module EF_TCC32_apb (
 
 	wire[31:0]	tmr;
 	wire[31:0]	TIMER_REG	= tmr;
-	wire[31:0]	period	= PERIOD_REG[31:0];
+	wire[31:0]	period		= PERIOD_REG[31:0];
 	wire[31:0]	cp_count;
 	wire[31:0]	COUNTER_REG	= cp_count;
 	wire[31:0]	ctr_match	= COUNTER_MATCH_REG[31:0];
-	wire		en	= CONTROL_REG[0:0];
-	wire		tmr_en	= CONTROL_REG[1:1];
-	wire		cp_en	= CONTROL_REG[3:3];
-	wire[3:0]	clk_src	= CONTROL_REG[11:8];
-	wire		up	= CONTROL_REG[16:16];
+
+	reg [31:0]	PWM_COMP_VAL_REG;
+
+	wire		en			= CONTROL_REG[0:0];
+	wire		tmr_en		= CONTROL_REG[1:1];
+	wire		cp_en		= CONTROL_REG[3:3];
+	wire[3:0]	clk_src		= CONTROL_REG[11:8];
+	wire		up			= CONTROL_REG[16:16];
 	wire		one_shot	= CONTROL_REG[17:17];
 	wire[1:0]	cp_event	= CONTROL_REG[25:24];
 	wire		to_flag;
@@ -75,14 +73,14 @@ module EF_TCC32_apb (
 	wire		cp_flag;
 	wire		_CP_FLAG_	= cp_flag;
 	wire		match_flag;
-	wire		_MATCH_FLAG_	= match_flag;
-	wire[2:0]	MIS_REG	= RIS_REG & IM_REG;
-	wire		ctr_in	= ext_clk;
+	wire		_MATCH_FLAG_= match_flag;
+	wire[2:0]	MIS_REG		= RIS_REG & IM_REG;
+	wire		ctr_in		= ext_clk;
 	wire		apb_valid	= PSEL & PENABLE;
-	wire		apb_we	= PWRITE & apb_valid;
-	wire		apb_re	= ~PWRITE & apb_valid;
-	wire		_clk_	= PCLK;
-	wire		_rst_	= ~PRESETn;
+	wire		apb_we		= PWRITE & apb_valid;
+	wire		apb_re		= ~PWRITE & apb_valid;
+	wire		_clk_		= PCLK;
+	wire		_rst_		= ~PRESETn;
 
 	EF_TCC32 inst_to_wrap (
 		.clk(_clk_),
@@ -104,20 +102,42 @@ module EF_TCC32_apb (
 		.en(en)
 	);
 
-	always @(posedge PCLK or negedge PRESETn) if(~PRESETn) PERIOD_REG <= 0; else if(apb_we & (PADDR[15:0]==PERIOD_REG_ADDR)) PERIOD_REG <= PWDATA[32-1:0];
-	always @(posedge PCLK or negedge PRESETn) if(~PRESETn) COUNTER_MATCH_REG <= 0; else if(apb_we & (PADDR[15:0]==COUNTER_MATCH_REG_ADDR)) COUNTER_MATCH_REG <= PWDATA[32-1:0];
-	always @(posedge PCLK or negedge PRESETn) if(~PRESETn) CONTROL_REG <= 0; else if(apb_we & (PADDR[15:0]==CONTROL_REG_ADDR)) CONTROL_REG <= PWDATA[32-1:0];
-	always @(posedge PCLK or negedge PRESETn) if(~PRESETn) IM_REG <= 0; else if(apb_we & (PADDR[15:0]==IM_REG_ADDR)) IM_REG <= PWDATA[3-1:0];
+	always @(posedge PCLK or negedge PRESETn) 
+		if(~PRESETn) PERIOD_REG <= 0; 
+		else if(apb_we & (PADDR[15:0]==PERIOD_REG_ADDR))
+			PERIOD_REG <= PWDATA[32-1:0];
+	
+	always @(posedge PCLK or negedge PRESETn) 
+		if(~PRESETn) COUNTER_MATCH_REG <= 0; 
+		else if(apb_we & (PADDR[15:0]==COUNTER_MATCH_REG_ADDR)) 
+			COUNTER_MATCH_REG <= PWDATA[32-1:0];
+	
+	always @(posedge PCLK or negedge PRESETn) 
+		if(~PRESETn) CONTROL_REG <= 0; 
+		else if(apb_we & (PADDR[15:0]==CONTROL_REG_ADDR)) 
+			CONTROL_REG <= PWDATA[32-1:0];
+	
+	always @(posedge PCLK or negedge PRESETn) 
+		if(~PRESETn) IM_REG <= 0; 
+		else if(apb_we & (PADDR[15:0]==IM_REG_ADDR)) 
+			IM_REG <= PWDATA[3-1:0];
 
-	always @(posedge PCLK or negedge PRESETn) if(~PRESETn) ICR_REG <= 3'b0; else if(apb_we & (PADDR[15:0]==ICR_REG_ADDR)) ICR_REG <= PWDATA[3-1:0]; else ICR_REG <= 3'd0;
+	always @(posedge PCLK or negedge PRESETn) 
+		if(~PRESETn) ICR_REG <= 3'b0; 
+		else if(apb_we & (PADDR[15:0]==ICR_REG_ADDR)) 
+			ICR_REG <= PWDATA[3-1:0]; 
+				else ICR_REG <= 3'd0;
+
 
 	always @(posedge PCLK or negedge PRESETn)
 		if(~PRESETn) RIS_REG <= 3'd0;
 		else begin
-			if(_TO_FLAG_) RIS_REG[0] <= 1'b1; else if(ICR_REG[0]) RIS_REG[0] <= 1'b0;
-			if(_CP_FLAG_) RIS_REG[1] <= 1'b1; else if(ICR_REG[1]) RIS_REG[1] <= 1'b0;
-			if(_MATCH_FLAG_) RIS_REG[2] <= 1'b1; else if(ICR_REG[2]) RIS_REG[2] <= 1'b0;
-
+			if(_TO_FLAG_) RIS_REG[0] <= 1'b1; 
+				else if(ICR_REG[0]) RIS_REG[0] <= 1'b0;
+			if(_CP_FLAG_) RIS_REG[1] <= 1'b1; 
+				else if(ICR_REG[1]) RIS_REG[1] <= 1'b0;
+			if(_MATCH_FLAG_) RIS_REG[2] <= 1'b1; 
+				else if(ICR_REG[2]) RIS_REG[2] <= 1'b0;
 		end
 
 	assign irq = |MIS_REG;
