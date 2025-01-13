@@ -1,4 +1,4 @@
-task apb_w_wr (input [31:0] address, input [31:0] data );
+task apb_w_wr (input [31:0] address, input [31:0] data);
     begin
         @(posedge PCLK);
         PSEL = 1;
@@ -6,6 +6,7 @@ task apb_w_wr (input [31:0] address, input [31:0] data );
         PWDATA = data;
         PENABLE = 0;
         PADDR = address;
+        PSTRB = '1;
         @(posedge PCLK);
         PENABLE = 1;
         @(posedge PCLK);
@@ -15,13 +16,14 @@ task apb_w_wr (input [31:0] address, input [31:0] data );
     end
 endtask
 		
-task apb_w_rd(input [31:0] address, output [31:0] data );
+task apb_w_rd(input [31:0] address, output [31:0] data);
     begin
         @(posedge PCLK);
         PSEL = 1;
         PWRITE = 0;
         PENABLE = 0;
         PADDR = address;
+        PSTRB = '1;
         @(posedge PCLK);
         PENABLE = 1;
         //@(posedge PREADY);

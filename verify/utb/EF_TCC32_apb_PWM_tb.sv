@@ -1,12 +1,15 @@
 `timescale 1ns/1ps
 
-module EF_TCC32_wb_tb;
+import cf_math_pkg::ceil_div;
 
-    `include "params.vh"
-    `include "apb_tasks.vh"
+module EF_TCC32_apb_PWM_tb;
+
 
     localparam CLK_PERIOD = 40;
     localparam TIMEOUT = 2_000_000_000;
+
+
+    localparam integer STRB_WIDTH = ceil_div(32, 8);
 
     reg         ctr_in;
 
@@ -17,30 +20,60 @@ module EF_TCC32_wb_tb;
 	reg  		PSEL;
 	reg  		PENABLE;
 	reg  [31:0]	PWDATA;
+    reg [STRB_WIDTH - 1:0] PSTRB;
 	wire [31:0]	PRDATA;
 	wire 		PREADY;
 	wire 		irq;
     wire        ext_clk = ctr_in;
     wire        pwm_out;
 
+    `include "params.vh"
+    `include "apb_tasks.vh"
+
+    APB #(.ADDR_WIDTH(32), .DATA_WIDTH(32)) apb_slave_if();
+
     // Для проверки ШИМ
     // Подсчет импульсов ШИМ
     reg  [31:0] pwm_pulse_count;
 
-    EF_TCC32_apb MUV (
-	    .ext_clk(ext_clk),
-	    .PCLK(PCLK),
-	    .PRESETn(PRESETn),
-	    .PADDR(PADDR),
-	    .PWRITE(PWRITE),
-	    .PSEL(PSEL),
-	    .PENABLE(PENABLE),
-	    .PWDATA(PWDATA),
-	    .PRDATA(PRDATA),
-	    .PREADY(PREADY),
-	    .irq(irq),
-        .gpio_pwm(pwm_out)
+    // EF_TCC32_apb MUV (
+	//     .ext_clk(ext_clk),
+	//     .PCLK(PCLK),
+	//     .PRESETn(PRESETn),
+	//     .PADDR(PADDR),
+	//     .PWRITE(PWRITE),
+	//     .PSEL(PSEL),
+	//     .PENABLE(PENABLE),
+	//     .PWDATA(PWDATA),
+	//     .PRDATA(PRDATA),
+	//     .PREADY(PREADY),
+	//     .irq(irq),
+    //     .gpio_pwm(pwm_out)
+    // );
+
+
+    EF_TCC32_apb #(.APB_ADDR_W(32)) MUV (
+        .ext_clk  (ext_clk           ),
+        .PCLK     (PCLK              ),
+        .PRESETn  (PRESETn           ),
+        .irq      (irq               ),
+        .gpio_pwm (pwm_out           ),
+        .apb_slave(apb_slave_if.Slave)
     );
+
+    // master drives
+    // assign apb_slave_if.pclk       = PCLK;
+    // assign apb_slave_if.preset_n   = PRESETn;
+    assign apb_slave_if.paddr      = PADDR;
+    assign apb_slave_if.psel       = PSEL;
+    assign apb_slave_if.penable    = PENABLE;
+    assign apb_slave_if.pwrite     = PWRITE;
+    assign apb_slave_if.pwdata     = PWDATA;
+    assign apb_slave_if.pstrb      = PSTRB;
+
+    // slave drives
+    assign PREADY = apb_slave_if.pready;
+    assign PRDATA = apb_slave_if.prdata;
 
     // Dump the signals
     initial begin
@@ -73,7 +106,7 @@ module EF_TCC32_wb_tb;
         @(power_on);
         PRESETn <= 1'b0;
         PCLK <= 1'b0;
-        #999;
+        #10;
         @(posedge PCLK);
         PRESETn <= 1'b1;
         -> reset_done;
@@ -102,9 +135,11 @@ module EF_TCC32_wb_tb;
         apb_w_wr(ICR_REG_ADDR, INT_TO_FLAG|INT_MATCH_FLAG|INT_CP_FLAG);
         // Down Counter, One Shot, Timer is Enabled and IP is enabled
         apb_w_wr(CONTROL_REG_ADDR, CTRL_EN|CTRL_TMR_EN|CTRL_MODE_ONESHOT);
+
+        $display("Wait irq | time: %t", $time);
         tmr_wait_to();
         $display("Test 1: Passed");
-        #1000;
+        #10;
         -> test1_done;
     end
     
@@ -124,7 +159,7 @@ module EF_TCC32_wb_tb;
         tmr_wait_to();
         tmr_wait_to();
         $display("Test 2: Passed");
-        #1000;
+        #10;
         -> test2_done;
     end
 
@@ -147,7 +182,7 @@ module EF_TCC32_wb_tb;
         // Clear all the flags
         apb_w_wr(ICR_REG_ADDR, 32'h7);
         $display("Test 3: Passed");
-        #1000;
+        #10;
         -> test3_done;
     end
 
