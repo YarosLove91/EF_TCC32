@@ -108,8 +108,8 @@ module EF_TCC32 (
     wire        tmr_clk;
     wire        tmr_clk_src;
     
-    assign tmr_clk_src =    (clk_src[3] == 1'b0)    ? pre[clk_src[2:0]] :
-                            (clk_src == 4'd9)       ? ctr_clk           : 1'b1;
+    assign tmr_clk_src = (clk_src[3] == 1'b0)    ? pre[clk_src[2:0]] :
+                         (clk_src == 4'd9)       ? ctr_clk           : 1'b1;
                             
     // clock edge detector                  
     reg         tmr_clk_src_delayed;
@@ -119,7 +119,7 @@ module EF_TCC32 (
         else
             tmr_clk_src_delayed <= tmr_clk_src;
     
-    assign tmr_clk =    (clk_src == 4'd8)   ? 1'b1 : ~tmr_clk_src_delayed & tmr_clk_src;
+    assign tmr_clk = (clk_src == 4'd8)   ? 1'b1 : ~tmr_clk_src_delayed & tmr_clk_src;
     
     
     always @ (posedge clk or negedge rst_n) begin
