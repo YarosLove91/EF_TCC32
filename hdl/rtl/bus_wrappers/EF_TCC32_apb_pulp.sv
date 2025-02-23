@@ -24,7 +24,8 @@ limitations under the License.
 
 module EF_TCC32_apb 
 #(
-    parameter int APB_ADDR_W = 32
+    parameter int                    APB_ADDR_W = 32,
+              logic [APB_ADDR_W-1:0] BASE_ADDR  = '0
 )
 (
     input  wire ext_clk  ,
@@ -51,7 +52,6 @@ module EF_TCC32_apb
     // apb regs params
     localparam int                    REGS_OFFSET = 4         ; // 32bit aligned addresses
     localparam int                    APB_DATA_W  = APB_ADDR_W;
-    localparam logic [APB_ADDR_W-1:0] BASE_ADDR   = 'd0       ; // TODO: clarify what address
 
 
     // read only regs indexes set for apb regs module
