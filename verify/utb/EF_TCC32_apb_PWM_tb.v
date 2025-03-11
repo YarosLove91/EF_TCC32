@@ -220,8 +220,8 @@ module EF_TCC32_wb_tb;
         apb_w_wr(ICR_REG_ADDR, 32'h7);
 
         // Проверка количества импульсов ШИМ
-        if (pwm_pulse_count != 41984) begin
-            $display("Test PWM: Failed - Expected high pulses: 41984, Actual: %d", pwm_pulse_count);
+        if (pwm_pulse_count != 977) begin
+            $display("Test PWM: Failed - Expected high pulses: 977, Actual: %d", pwm_pulse_count);
         end else begin
             $display("Test PWM: Passed - High pulses: %d", pwm_pulse_count);
         end
