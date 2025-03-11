@@ -36,22 +36,6 @@ module EF_TCC32_apb_pulp_pwm_tb;
     // Подсчет импульсов ШИМ
     reg  [31:0] pwm_pulse_count;
 
-    // EF_TCC32_apb MUV (
-    //     .ext_clk(ext_clk),
-    //     .PCLK(PCLK),
-    //     .PRESETn(PRESETn),
-    //     .PADDR(PADDR),
-    //     .PWRITE(PWRITE),
-    //     .PSEL(PSEL),
-    //     .PENABLE(PENABLE),
-    //     .PWDATA(PWDATA),
-    //     .PRDATA(PRDATA),
-    //     .PREADY(PREADY),
-    //     .irq(irq),
-    //     .gpio_pwm(pwm_out)
-    // );
-
-
     EF_TCC32_apb #(.APB_ADDR_W(32)) MUV (
         .ext_clk  (ext_clk           ),
         .PCLK     (PCLK              ),
@@ -217,21 +201,13 @@ module EF_TCC32_apb_pulp_pwm_tb;
     end
 
     /*
-    Количество импульсов 
-    Общее количество импульсов за 10 секунд:
-
-    Частота PWM = 1 / (Период в наносекундах) = 1 / (1024 * 40) = 1 / 40960 Гц ≈ 0.0000244140625 с (или 24.414 мс).
-    Количество циклов за 10 секунд = 10 секунд / 24.414 мс ≈ 409.6 циклов.
-    Общее количество импульсов = 409.6 циклов * 1024 импульса/цикл ≈ 419840 импульсов.
-    Количество высоких импульсов:
-
-    Высокие импульсы = 409.6 циклов * 512 высоких импульсов/цикл ≈ 209920 высоких импульсов.
+    Частота PWM = 1 / (Период в наносекундах) 
     */
 
     // Подсчет импульсов pwm_out
     initial begin
-        pwm_pulse_count = 0; // Инициализация счетчика
-        @(test4_done); // Ждем завершения теста 4
+        pwm_pulse_count = 0;                        // Инициализация счетчика
+        @(test4_done);                              // Ждем завершения теста 4
         forever @(posedge pwm_out) begin
             pwm_pulse_count = pwm_pulse_count + 1; // Инкрементируем счетчик
         end
