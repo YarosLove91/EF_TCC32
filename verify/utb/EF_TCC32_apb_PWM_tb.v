@@ -44,18 +44,19 @@ module EF_TCC32_wb_tb;
 
     // Dump the signals
     initial begin
-        $dumpfile("EF_TCC32_PWM.vcd");
-        $dumpvars(0, MUV);
+        $dumpfile("EF_TCC32_PWM.vcd"); // Имя файла для сохранения waveforms
+        $dumpvars(1, EF_TCC32_wb_tb);  // Сохраняем все сигналы тестбенча и модуля MUV
+        $dumpvars(0, MUV);             // Сохраняем все сигналы модуля MUV
     end
 
-    // Stop the simulation after 1ms (Tiemout)
+    // Stop the simulation after 1ms (Timeout)
     initial begin
         #TIMEOUT;
         $display("Failed: Timeout");
         $finish; 
     end
 
-    // clock and rest generator
+    // Clock and reset generator
     event power_on, reset_done;
     initial begin
         PCLK <= 1'bx;
@@ -87,7 +88,6 @@ module EF_TCC32_wb_tb;
         repeat(50)
             #(CLK_PERIOD*17.3/2) ctr_in = !ctr_in;
     end
-
 
     // Test Cases
     reg [31:0] data_out;
@@ -151,7 +151,6 @@ module EF_TCC32_wb_tb;
         -> test3_done;
     end
 
-    
     // Test 4
     // External Events Capture
     initial begin
@@ -181,10 +180,6 @@ module EF_TCC32_wb_tb;
         -> test4_done;
     end
 
-    /*
-    Частота PWM = 1 / (Период в наносекундах) = 1 / (1024 * 40) = 1 / 40960 Гц ≈ 0.0000244140625 с (или 24.414 мс).
-    */
-
     // Подсчет импульсов pwm_out
     initial begin
         pwm_pulse_count = 0; // Инициализация счетчика
@@ -193,7 +188,6 @@ module EF_TCC32_wb_tb;
             pwm_pulse_count = pwm_pulse_count + 1; // Инкрементируем счетчик
         end
     end
-
 
     // Test PWM
     initial begin
@@ -204,7 +198,7 @@ module EF_TCC32_wb_tb;
         apb_w_wr(PERIOD_REG_ADDR, 32'h400);
         // Clear all flags before enabling the Timer
         apb_w_wr(ICR_REG_ADDR, INT_TO_FLAG|INT_MATCH_FLAG|INT_CP_FLAG);
-        // LAOD PWM compare value
+        // LOAD PWM compare value
         // PWM cmp val = 512
         apb_w_wr(PWM_COMP_VAL_ADDR, 32'h200);
         $display("Current PWM pulses: %d", pwm_pulse_count);
@@ -232,15 +226,14 @@ module EF_TCC32_wb_tb;
         $finish;
     end
 
-
-task tmr_wait_to;
-    begin: task_body
-        reg [31:0] ris;
-        ris = 0;
-        while(ris == 0) begin
-            apb_w_rd(RIS_REG_ADDR, ris);
-        end 
-    end
-endtask
+    task tmr_wait_to;
+        begin: task_body
+            reg [31:0] ris;
+            ris = 0;
+            while(ris == 0) begin
+                apb_w_rd(RIS_REG_ADDR, ris);
+            end 
+        end
+    endtask
 
 endmodule
