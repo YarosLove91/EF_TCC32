@@ -85,7 +85,7 @@ module EF_TCC32 (
     reg			    pwm_out;
     
     assign pwm_out_pin = pwm_out;
-    assign to_flag = up ? (tmr == period) : (tmr == 32'b0);
+    assign to_flag = en & tmr_en & (up ? (tmr == period) : (tmr == 32'b0));
     
     // ctr pin syn
     reg	ctr_in_sync [1:0];
