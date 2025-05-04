@@ -27,7 +27,7 @@
 `define		APB_REG(name, init, size)	`APB_BLOCK(name, init) else if(apb_we & (PADDR[15:0]==``name``_ADDR)) name <= PWDATA[``size``-1:0];
 `define		APB_ICR(size)				`APB_BLOCK(ICR_REG, ``size``'b0) else if(apb_we & (PADDR[15:0]==ICR_REG_ADDR)) ICR_REG <= PWDATA[``size``-1:0]; else ICR_REG <= ``size``'d0;
 
-module EF_TCC32_apb (
+module EF_TCC32_apb_old (
 	input	wire 		ext_clk,
 	input	wire 		PCLK,
 	input	wire 		PRESETn,

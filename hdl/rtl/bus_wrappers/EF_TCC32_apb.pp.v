@@ -22,7 +22,7 @@
 `timescale			1ns/1ns
 `default_nettype	none
 
-module EF_TCC32_apb (
+module EF_TCC32_apb_pp (
 	input	wire 		ext_clk,
 	input	wire 		PCLK,
 	input	wire 		PRESETn,
